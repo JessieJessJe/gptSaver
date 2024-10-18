@@ -1,10 +1,30 @@
+import asyncio
+import aiohttp
+
+async def fetch_openai_response(question):
+    url = 'https://api.openai.com/v1/chat/completions'
+    headers = {
+        'Authorization': f'Bearer {os.getenv("OPENAI_API_KEY")}',
+        'Content-Type': 'application/json',
+    }
+    payload = {
+        "model": "gpt-4",
+        "messages": [{"role": "user", "content": question}],
+    }
+
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url, headers=headers, json=payload) as response:
+            response_data = await response.json()
+            return response_data['choices'][0]['message']['content']
+
+# Example use in the handler
 import os
 import json
 import firebase_admin
 from firebase_admin import credentials, firestore
-import requests
 from http.server import BaseHTTPRequestHandler
 from dotenv import load_dotenv
+import asyncio
 
 # Load environment variables from .env file (for local development)
 load_dotenv()
@@ -38,22 +58,10 @@ class handler(BaseHTTPRequestHandler):
             self.wfile.write(b'{"error": "Question is required"}')
             return
 
-        # Send the question to OpenAI API
+        # Run the async function to get the answer
         try:
-            openai_response = requests.post(
-                'https://api.openai.com/v1/chat/completions',
-                headers={
-                    'Authorization': f'Bearer {os.getenv("OPENAI_API_KEY")}',
-                    'Content-Type': 'application/json',
-                },
-                json={
-                    "model": "gpt-4",
-                    "messages": [{"role": "user", "content": user_question}],
-                }
-            )
-            openai_response.raise_for_status()
-            response_data = openai_response.json()
-            gpt_answer = response_data['choices'][0]['message']['content']
+            loop = asyncio.get_event_loop()
+            gpt_answer = loop.run_until_complete(fetch_openai_response(user_question))
 
             # Save question and answer to Firestore
             db.collection('questions').add({
@@ -67,7 +75,8 @@ class handler(BaseHTTPRequestHandler):
             self.send_header('Content-type', 'application/json')
             self.end_headers()
             self.wfile.write(json.dumps({'answer': gpt_answer}).encode())
-        except requests.exceptions.RequestException as e:
+
+        except Exception as e:
             self.send_response(500)
             self.end_headers()
             self.wfile.write(json.dumps({'error': str(e)}).encode())
