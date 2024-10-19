@@ -18,7 +18,22 @@ const AmbientBackground: React.FC = () => {
       }
     `;
 
-    // Fragment shader source (five circles representing the elements with time-based Lissajous curve)
+    // Fragment shader source generated from array data
+    const circles = [
+      { position: 'vec2(0., curveX)', name: 'Air', color: 'vec3(0.5, 0.8, .8)', dist: 'dist1', intensityFunc: 'tan(sin(a * uv.y + b * uv.x + time))' },
+      { position: 'vec2(0., curveY)', name: 'Fire', color: 'vec3(1.0, 0.5, 0.0)', dist: 'dist2', intensityFunc: 'tan(cos(b * uv.x + a * uv.x + time))' },
+      { position: 'vec2(0., curve3)', name: 'Water', color: 'vec3(0.0, 0.0, 0.8)', dist: 'dist3', intensityFunc: 'tan(sin(a * uv.x + b * uv.x + delta + time))' },
+      { position: 'vec2(0., curve4)', name: 'Earth', color: 'vec3(1.0, 0.5, 0.0)', dist: 'dist4', intensityFunc: 'tan(cos(b * uv.x + a * uv.x + delta + time))' },
+      { position: 'vec2(0., 0.)', name: 'Aether', color: 'vec3(1.0, 0.0, 0.8)', dist: 'dist5', intensityFunc: 'tan(sin(a * uv.y + b * uv.x + time))' },
+      { position: 'vec2(0.5, curveX)', name: 'Wind', color: 'vec3(0.3, 0.7, 1.0)', dist: 'dist6', intensityFunc: 'tan(cos(a * uv.y + time))' },
+      { position: 'vec2(-0.5, curveY)', name: 'Lightning', color: 'vec3(1.0, 1.0, 0.2)', dist: 'dist7', intensityFunc: 'tan(sin(b * uv.x + time))' },
+      { position: 'vec2(0.3, curve3)', name: 'Ice', color: 'vec3(0.0, 0.9, 1.0)', dist: 'dist8', intensityFunc: 'tan(cos(a * uv.x + delta + time))' },
+      { position: 'vec2(-0.3, curve4)', name: 'Stone', color: 'vec3(0.5, 0.3, 0.2)', dist: 'dist9', intensityFunc: 'tan(sin(b * uv.y + delta + time))' },
+      { position: 'vec2(0.2, 0.2)', name: 'Spirit', color: 'vec3(1.0, 0.5, 1.0)', dist: 'dist10', intensityFunc: 'tan(cos(a * uv.x + b * uv.y + time))' },
+      { position: 'vec2(-0.2, -0.2)', name: 'Shadow', color: 'vec3(0.1, 0.1, 0.1)', dist: 'dist11', intensityFunc: 'tan(sin(a * uv.x - b * uv.y + time))' },
+      { position: 'vec2(0.1, -0.3)', name: 'Light', color: 'vec3(1.0, 1.0, 0.9)', dist: 'dist12', intensityFunc: 'tan(cos(a * uv.y - b * uv.x + delta + time))' }
+    ];
+
     const fragmentShaderSource = `
       precision mediump float;
       uniform float time;
@@ -28,48 +43,36 @@ const AmbientBackground: React.FC = () => {
         vec2 uv = (gl_FragCoord.xy / resolution.xy) * 2.0 - 1.0;
 
         // Lissajous curve parameters controlled by time
-        float a = 10.0 + tan(sin(time * 0.1));
-        float b = 50.0 + tan(cos(time * 0.1));
-        float delta = time * 1.5;
+        float a = 10.0 + sin(time * 0.1);
+        float b = 50.0 + cos(time * 0.1);
+        float delta = time * 0.5;
 
         // Lissajous curve calculation
-        float curveX = sin(a * uv.x);
-        float curveY = cos(b * uv.y);
-        float curve3 = sin(a * uv.y);
-        float curve4 = cos(b * uv.x);
-
-        // Circle positions and radii for the five elements
-        vec2 circle1Pos = vec2(0., curveX);  // Air
-        vec2 circle2Pos = vec2(0., curveY);   // Fire
-        vec2 circle3Pos = vec2(0., curve3); // Water
-        vec2 circle4Pos = vec2(0., curve4);  // Earth
-        vec2 circle5Pos = vec2(0., 0.);   // Aether
+        float curveX = tan(sin(a * uv.x));
+        float curveY = tan(cos(b * uv.y));
+        float curve3 = tan(sin(a * uv.y));
+        float curve4 = tan(cos(b * uv.x));
 
         float radius = 1.0;
 
-        // Distance from the current fragment to the center of each circle
-        float dist1 = length(uv - circle1Pos);
-        float dist2 = length(uv - circle2Pos);
-        float dist3 = length(uv - circle3Pos);
-        float dist4 = length(uv - circle4Pos);
-        float dist5 = length(uv - circle5Pos);
+        vec3 finalColor = vec3(0.0);
 
-        // Circle intensities influenced by the Lissajous curve
-        float circle1Intensity = smoothstep(radius, 0., dist1) * (0. + 2.5 * sin(a * uv.y + b * uv.x+ time));
-        float circle2Intensity = smoothstep(radius, 0., dist2) * (0. + 2.5 * cos(b * uv.x + a * uv.x+ time));
-        float circle3Intensity = smoothstep(radius, 0., dist3) * (0. + 2.5 * sin(a * uv.x + b * uv.x+ delta+ time));
-        float circle4Intensity = smoothstep(radius, 0., dist4) * (0. + 2.5 * cos(b * uv.x + a * uv.x+ delta+ time));
-        float circle5Intensity = smoothstep(radius, 0., dist5) * (0. + 2.5 * sin(a * uv.y + b * uv.x+ time));
+        ${circles.map((circle, index) => `
+        // Circle ${index + 1} (${circle.name})
+        vec2 circle${index + 1}Pos = ${circle.position};
+        float dist${index + 1} = length(uv - circle${index + 1}Pos);
+        float circle${index + 1}Intensity = smoothstep(radius, 0., dist${index + 1}) * (0. + 2.5 * ${circle.intensityFunc});
+        vec3 circle${index + 1}Color = ${circle.color} * circle${index + 1}Intensity;
+        finalColor += circle${index + 1}Color;
+        `).join('')}
 
-        // Color the circles based on their intensity and element representation
-        vec3 circle1Color = vec3(0.5, 0.8, .8) * circle1Intensity;    // Air (light blue)
-        vec3 circle2Color = vec3(1.0, 0.5, 0.0) * circle2Intensity;    // Fire (orange-red)
-        vec3 circle3Color = vec3(0.0, 0.0, 0.8) * circle3Intensity;    // Water (deep blue)
-        vec3 circle4Color = vec3(1.0, 0.5, 0.0) * circle4Intensity;   // Earth (brown-green)
-        vec3 circle5Color = vec3(1.0, 0.0, 0.8) * circle5Intensity;    // Aether (purple)
-
-        // Combine the colors of the circles
-        vec3 finalColor = circle1Color + circle2Color + circle3Color + circle4Color + circle5Color;
+        // Displaying the circle names at their positions
+        ${circles.map((circle, index) => `
+        if (dist${index + 1} < 0.1) {
+          // Render text or some indication for ${circle.name}
+          finalColor += vec3(1.0, 1.0, 1.0); // Highlight the circle's name with a white glow
+        }
+        `).join('')}
 
         gl_FragColor = vec4(finalColor, 1);
       }
