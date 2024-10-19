@@ -28,20 +28,20 @@ const AmbientBackground: React.FC = () => {
         vec2 uv = (gl_FragCoord.xy / resolution.xy) * 2.0 - 1.0;
 
         // Lissajous curve parameters controlled by time
-        float a = 1.0 + sin(time * 0.3);
-        float b = 10.0 + cos(time * 0.3);
-        float delta = time * 3.0;
+        float a = 20.0 + sin(time * 0.3);
+        float b = .0 + cos(time * 0.3);
+        float delta = time * 1.0;
 
         // Lissajous curve calculation
         float curveX = sin(a * uv.x + delta);
         float curveY = sin(b * uv.y);
 
         // Circle positions and radii for the five elements
-        vec2 circle1Pos = vec2(0., 0.5);  // Air
-        vec2 circle2Pos = vec2(0., .5);   // Fire
-        vec2 circle3Pos = vec2(0.0, .5); // Water
-        vec2 circle4Pos = vec2(-0., .5);  // Earth
-        vec2 circle5Pos = vec2(-0., .5);   // Aether
+        vec2 circle1Pos = vec2(0.5, 0.5);  // Air
+        vec2 circle2Pos = vec2(-0.25, .5);   // Fire
+        vec2 circle3Pos = vec2(0.25, .5); // Water
+        vec2 circle4Pos = vec2(-0.5, .5);  // Earth
+        vec2 circle5Pos = vec2(0.0, .5);   // Aether
 
         float radius = 0.5;
 
@@ -53,11 +53,11 @@ const AmbientBackground: React.FC = () => {
         float dist5 = length(uv - circle5Pos);
 
         // Circle intensities influenced by the Lissajous curve
-        float circle1Intensity = smoothstep(radius, radius - 0.4, dist1) * (0. + 0.2 * sin(a * uv.x + time));
-        float circle2Intensity = smoothstep(radius, radius - 0.4, dist2) * (0. + 0.2 * cos(b * uv.y + time));
-        float circle3Intensity = smoothstep(radius, radius - 0.4, dist3) * (0. + 0.2 * sin(a * uv.y + delta+time));
-        float circle4Intensity = smoothstep(radius, radius - 0.4, dist4) * (0. + 0.2 * cos(b * uv.x + delta+time));
-        float circle5Intensity = smoothstep(radius, radius - 0.4, dist5) * (0. + 0.2 * sin(a * uv.y + b * uv.x+time));
+        float circle1Intensity = smoothstep(radius, radius - 0.4, dist1) * (0. + 0.2 * sin(a * uv.y + b * uv.x+ time));
+        float circle2Intensity = smoothstep(radius, radius - 0.4, dist2) * (0. + 0.2 * cos(b * uv.x + a * uv.x+ time));
+        float circle3Intensity = smoothstep(radius, radius - 0.4, dist3) * (0. + 0.2 * sin(a * uv.x + b * uv.x+ delta+ time));
+        float circle4Intensity = smoothstep(radius, radius - 0.4, dist4) * (0. + 0.2 * cos(b * uv.x + a * uv.x+ delta+ time));
+        float circle5Intensity = smoothstep(radius, radius - 0.4, dist5) * (0. + 0.2 * sin(a * uv.y + b * uv.x+ time));
 
         // Color the circles based on their intensity and element representation
         vec3 circle1Color = vec3(0.5, 0.8, .8) * circle1Intensity;    // Air (light blue)
