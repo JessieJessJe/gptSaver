@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useIndex } from './IndexContext';
 import ControlPanel from './ControlPanel';
 import "tailwindcss/tailwind.css";
@@ -6,6 +6,43 @@ import "tailwindcss/tailwind.css";
 const AmbientBackground: React.FC = () => {
   const { variables } = useIndex();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [exportClicked, setExportClicked] = useState(false);
+  const glRef = useRef<WebGLRenderingContext | null>(null);
+  const shaderProgramRef = useRef<WebGLProgram | null>(null);
+  const timeUniformLocationRef = useRef<WebGLUniformLocation | null>(null);
+  const resolutionUniformLocationRef = useRef<WebGLUniformLocation | null>(null);
+
+  const render = (time: number) => {
+    const gl = glRef.current;
+    const shaderProgram = shaderProgramRef.current;
+    const timeUniformLocation = timeUniformLocationRef.current;
+
+    if (!gl || !shaderProgram) return;
+
+    time *= 0.001; // Convert to seconds
+    gl.useProgram(shaderProgram);
+
+    // Update the time uniform
+    if (timeUniformLocation) {
+      gl.uniform1f(timeUniformLocation, time * variables.timeMultiplier);
+    }
+
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    // Draw the fullscreen quad
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+    // Check if export is clicked
+    if (exportClicked === true && canvasRef.current) {
+      setExportClicked(false)
+      const image = canvasRef.current.toDataURL("image/png");
+      const link = document.createElement("a");
+      link.href = image;
+      link.download = "canvas_export.png";
+      link.click();   
+    }
+    if (!exportClicked) requestAnimationFrame(render);
+  };
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -16,6 +53,8 @@ const AmbientBackground: React.FC = () => {
       console.error("WebGL not supported.");
       return;
     }
+
+    glRef.current = gl;
 
     // Vertex Shader Source
     const vertexShaderSource = `
@@ -118,6 +157,7 @@ const AmbientBackground: React.FC = () => {
     const shaderProgram = createProgram(gl, vertexShader, fragmentShader);
     if (!shaderProgram) return;
 
+    shaderProgramRef.current = shaderProgram;
     gl.useProgram(shaderProgram);
 
     // Define a full screen quad
@@ -137,8 +177,8 @@ const AmbientBackground: React.FC = () => {
     gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
 
     // Uniform Locations
-    const timeUniformLocation = gl.getUniformLocation(shaderProgram, "time");
-    const resolutionUniformLocation = gl.getUniformLocation(shaderProgram, "resolution");
+    timeUniformLocationRef.current = gl.getUniformLocation(shaderProgram, "time");
+    resolutionUniformLocationRef.current = gl.getUniformLocation(shaderProgram, "resolution");
 
     // Resize the canvas
     const resizeCanvas = () => {
@@ -146,40 +186,31 @@ const AmbientBackground: React.FC = () => {
       canvas.height = window.innerHeight;
       gl.viewport(0, 0, canvas.width, canvas.height);
       gl.useProgram(shaderProgram);
-      gl.uniform2f(resolutionUniformLocation, canvas.width, canvas.height);
+      if (resolutionUniformLocationRef.current) {
+        gl.uniform2f(resolutionUniformLocationRef.current, canvas.width, canvas.height);
+      }
     };
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
-
-    // Render function
-    const render = (time: number) => {
-      time *= 0.001; // Convert to seconds
-
-      gl.useProgram(shaderProgram);
-
-      // Update the time uniform
-      if (timeUniformLocation) {
-        gl.uniform1f(timeUniformLocation, time * variables.timeMultiplier);
-      }
-
-      gl.clear(gl.COLOR_BUFFER_BIT);
-
-      // Draw the fullscreen quad
-      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
-      requestAnimationFrame(render);
-    };
-    requestAnimationFrame(render);
 
     return () => {
       window.removeEventListener('resize', resizeCanvas);
     };
   }, [variables]);
 
+  useEffect(() => {
+    requestAnimationFrame(render);
+  }, [variables, exportClicked]);
+
+  const handleExport = () => {
+    setExportClicked(true);
+  };
+
   return (
     <>
       <canvas ref={canvasRef} id="backgroundCanvas" className="w-full h-full absolute top-0 left-0" />
       <ControlPanel />
+      <button onClick={handleExport} className="relative bottom-5 right-5 bg-blue-500 text-white py-2 px-4 rounded">Export Frame</button>
     </>
   );
 };
