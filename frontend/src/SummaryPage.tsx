@@ -3,13 +3,13 @@ import axios from 'axios';
 import { useState, useEffect } from 'react';
 
 const SummaryPage: React.FC = () => {
-  const [answers, setAnswers] = useState<{ question: string, answer: string, category?: string }[]>([]);
+  const [answers, setAnswers] = useState<{ question: string, answer: string, index?: string }[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
   const fetchSavedAnswers = async () => {
     setLoading(true);
     try {
-      const response = await axios.get<{ question: string, answer: string, category?: string }[]>('https://us-central1-gpt-saver-31c4d.cloudfunctions.net/savedAnswers');
+      const response = await axios.get<{ question: string, answer: string, index?: string }[]>('https://us-central1-gpt-saver-31c4d.cloudfunctions.net/savedAnswers');
       setAnswers(response.data);
     } catch (error) {
       console.error("Error fetching saved answers:", error);
@@ -24,7 +24,7 @@ const SummaryPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen py-2">
+    <div className="flex flex-col items-center justify-center min-h-screen py-2 text-white">
       <h1 className="text-3xl font-bold mb-4">Saved Answers</h1>
       <button
         onClick={fetchSavedAnswers}
@@ -41,10 +41,10 @@ const SummaryPage: React.FC = () => {
               <p className="mb-2">{item.question}</p>
               <h3 className="text-lg font-semibold">Answer:</h3>
               <p className="mb-2">{item.answer}</p>
-              {item.category && (
-                <h3 className="text-lg font-semibold">Category:</h3>
+              {item.index && (
+                <h3 className="text-lg font-semibold">index:</h3>
               )}
-              {item.category && <span className="text-sm text-gray-500">{item.category}</span>}
+              {item.index && <span className="text-sm text-white">{item.index}</span>}
             </li>
           ))}
         </ul>
