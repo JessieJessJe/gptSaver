@@ -4,6 +4,7 @@ import { IndexProvider } from './IndexContext';
 import AskQuestionPage from './AskQuestionPage';
 import SummaryPage from './SummaryPage';
 import LandingPage from './LandingPage';
+import Playground from './Playground';
 
 
 
@@ -19,12 +20,14 @@ const App: React.FC = () => {
           <Link to="/" className="text-blue-500 hover:underline">Home</Link>
             <Link to="/question" className="text-blue-500 hover:underline">Ask a Question</Link>
             <Link to="/summary" className="text-blue-500 hover:underline">Summary Page</Link>
+            <Link to="/playground" className="text-blue-500 hover:underline">Playground</Link>
           </nav> 
 
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/question" element={<AskQuestionPage />} />
             <Route path="/summary" element={<SummaryPage />} />
+            <Route path="/playground" element={<Playground />} />
           </Routes> 
         </div>
       </Router>
