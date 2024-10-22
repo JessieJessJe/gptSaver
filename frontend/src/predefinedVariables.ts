@@ -6,40 +6,35 @@ interface Variables {
     bMultiplier: number;
   }
 
-//   <option value={1}>1 - Earth</option>
-//   <option value={2}>2 - Water</option>
-//   <option value={3}>3 - Air</option>
-//   <option value={4}>4 - Fire</option>
-//   <option value={5}>5 - Aether</option>
   
   export const predefinedVariables: Record<number, Variables> = {
     1: {
-      timeMultiplier: 0.5,
-      smoothFactor: 0.61,
-      radiusMultiplier: 5.0,
-      aMultiplier: 2.0,
-      bMultiplier: 6.0,
+      timeMultiplier: 0.8,
+      smoothFactor: 0.11,
+      radiusMultiplier: 0.7,
+      aMultiplier: 3.0,
+      bMultiplier: 2.0,
     },
     2: {
-      timeMultiplier: 3.5,
+      timeMultiplier: 1.0,
       smoothFactor: 0.9,
       radiusMultiplier: 1.0,
-      aMultiplier: 50.0,
+      aMultiplier: 3.0,
       bMultiplier: 5.0,
     },
     3: {
-      timeMultiplier: 0.5,
-      smoothFactor: 0.97,
-      radiusMultiplier: 3.5,
-      aMultiplier: 4.0,
-      bMultiplier: 88.0,
+      timeMultiplier: 1.3,
+      smoothFactor: 0.87,
+      radiusMultiplier: 1.1,
+      aMultiplier: 9.0,
+      bMultiplier: 2.0,
     },
     4: {
       timeMultiplier: 1.5,
-      smoothFactor: 0.86,
-      radiusMultiplier: 1.5,
-      aMultiplier:3.0,
-      bMultiplier:5.0,
+      smoothFactor: 0.13,
+      radiusMultiplier: 0.9,
+      aMultiplier:1.0,
+      bMultiplier:75.0,
     },
     5: {
       timeMultiplier: 1.1,

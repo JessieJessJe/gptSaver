@@ -7,7 +7,7 @@ const ControlPanel: React.FC = () => {
   const variableConfig = {
     timeMultiplier: { min: 0.1, max: 5.0, step: 0.1 },
     smoothFactor: { min: 0.1, max: 1.0, step: 0.01 },
-    radiusMultiplier: { min: 0.5, max: 10.0, step: 0.5 },
+    radiusMultiplier: { min: 0.5, max: 10.0, step: 0.1 },
     aMultiplier: { min: 1.0, max: 100.0, step: 1.0 },
     bMultiplier: { min: 1.0, max: 100.0, step: 1.0 },
   };

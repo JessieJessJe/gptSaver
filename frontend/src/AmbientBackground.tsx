@@ -3,8 +3,18 @@ import { useIndex } from './IndexContext';
 import ControlPanel from './ControlPanel';
 import "tailwindcss/tailwind.css";
 
-const AmbientBackground: React.FC = () => {
-  const { variables } = useIndex();
+import { predefinedVariables } from './predefinedVariables';
+
+interface AmbientBackgroundProps {
+  index?: number;  // Optional index prop
+}
+
+
+const AmbientBackground: React.FC<AmbientBackgroundProps> = ({ index }) => {
+  const { variables } = useIndex();  // Access context
+  // If an index is provided, use predefinedVariables, otherwise use context variables
+  const currentVariables = index ? predefinedVariables[index] : variables;
+
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [exportClicked, setExportClicked] = useState(false);
   const glRef = useRef<WebGLRenderingContext | null>(null);
@@ -38,7 +48,7 @@ const AmbientBackground: React.FC = () => {
       const image = canvasRef.current.toDataURL("image/png");
       const link = document.createElement("a");
       link.href = image;
-      link.download = "canvas_export.png";
+      link.download = `canvas_export_${time}.png`;
       link.click();   
     }
     if (!exportClicked) requestAnimationFrame(render);
@@ -89,9 +99,9 @@ const AmbientBackground: React.FC = () => {
         vec2 uv = (gl_FragCoord.xy / resolution.xy) * 2.0 - 1.0;
 
         // Lissajous curve parameters controlled by time
-        float a = float(${variables.aMultiplier}) + sin(time * 0.1);
-        float b = float(${variables.bMultiplier}) + cos(time * 0.1);
-        float delta = time * float(${variables.timeMultiplier});
+        float a = float(${currentVariables.aMultiplier}) + sin(time * 0.1);
+        float b = float(${currentVariables.bMultiplier}) + cos(time * 0.1);
+        float delta = time * float(${currentVariables.timeMultiplier});
 
         // Lissajous curve calculation
         float curveX = sin(a * uv.x);
@@ -99,7 +109,7 @@ const AmbientBackground: React.FC = () => {
         float curve3 = sin(a * uv.y);
         float curve4 = cos(b * uv.x);
 
-        float radius = float(${variables.radiusMultiplier}) * (curveY);
+        float radius = float(${currentVariables.radiusMultiplier}) * (curveY);
 
         vec3 finalColor = vec3(0.0);
 
@@ -107,7 +117,7 @@ const AmbientBackground: React.FC = () => {
         // Circle ${index + 1}
         vec2 circle${index + 1}Pos = ${circle.position};
         float dist${index + 1} = length(uv - circle${index + 1}Pos);
-        float circle${index + 1}Intensity = smoothstep(radius, radius - float(${variables.smoothFactor}), dist${index + 1}) * (0. + 0.4 * ${circle.intensityFunc});
+        float circle${index + 1}Intensity = smoothstep(radius, radius - float(${currentVariables.smoothFactor}), dist${index + 1}) * (0. + 0.4 * ${circle.intensityFunc});
         vec3 circle${index + 1}Color = ${circle.color} * circle${index + 1}Intensity;
         finalColor += circle${index + 1}Color;
         `).join('')}
@@ -208,9 +218,9 @@ const AmbientBackground: React.FC = () => {
 
   return (
     <>
-      <canvas ref={canvasRef} id="backgroundCanvas" className="w-full h-full absolute top-0 left-0" />
-      <ControlPanel />
-      <button onClick={handleExport} className="relative bottom-5 right-5 bg-blue-500 text-white py-2 px-4 rounded">Export Frame</button>
+      <canvas ref={canvasRef} id="backgroundCanvas" className="w-[30vh] h-[10vh]" />
+      {/* <ControlPanel /> */}
+      {/* <button onClick={handleExport} className="relative bottom-5 right-5 bg-blue-500 text-white py-2 px-4 rounded">Export Frame</button> */}
     </>
   );
 };
